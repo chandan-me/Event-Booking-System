@@ -42,7 +42,7 @@ A production-grade, distributed Event Booking System built with:
 ## Progress Checklist
 
 - [x] **Phase 1: Requirements and Foundation** (Architecture, directory layout, git, .env.example, contracts)
-- [ ] **Phase 2: MySQL & Database Foundation** (Docker Compose, 4 logical DBs, SQLAlchemy, Alembic)
+- [x] **Phase 2: MySQL & Database Foundation** (Docker Compose, 4 logical DBs, SQLAlchemy, Alembic)
 - [ ] **Phase 3: Auth Service** (Registration, Argon2id, OTP, SMTP, JWT access & refresh tokens)
 - [ ] **Phase 4: Event Service** (CRUD, categories, filtering, atomic inventory reservation)
 - [ ] **Phase 5: Booking Service** (Booking lifecycle, references, compensation, concurrency checks)

@@ -1,0 +1,64 @@
+name: event-booking-system
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: event-booking-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword_dev_only
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./infra/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - event-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: event-booking-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"     # AMQP protocol
+      - "15672:15672"   # Management HTTP UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - event-net
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: event-booking-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"     # Local SMTP server
+      - "8025:8025"     # Web UI to preview outgoing emails
+    networks:
+      - event-net
+
+volumes:
+  mysql_data:
+    name: event-booking-mysql-data
+  rabbitmq_data:
+    name: event-booking-rabbitmq-data
+
+networks:
+  event-net:
+    name: event-booking-network
+    driver: bridge
