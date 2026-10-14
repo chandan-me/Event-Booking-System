@@ -44,7 +44,7 @@ A production-grade, distributed Event Booking System built with:
 - [x] **Phase 1: Requirements and Foundation** (Architecture, directory layout, git, .env.example, contracts)
 - [x] **Phase 2: MySQL & Database Foundation** (Docker Compose, 4 logical DBs, SQLAlchemy, Alembic)
 - [x] **Phase 3: Auth Service** (Registration, Argon2id, OTP, SMTP, JWT access & refresh tokens)
-- [ ] **Phase 4: Event Service** (CRUD, categories, filtering, atomic inventory reservation)
+- [x] **Phase 4: Event Service** (CRUD, categories, filtering, atomic inventory reservation)
 - [ ] **Phase 5: Booking Service** (Booking lifecycle, references, compensation, concurrency checks)
 - [ ] **Phase 6: Notification Service** (RabbitMQ consumer, templates, retries, dead-letter queue)
 - [ ] **Phase 7: API Gateway** (Reverse proxy routing, CORS, rate limits, centralized logging)
