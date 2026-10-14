@@ -1,3 +1,4 @@
+import secrets
 from sqlalchemy import (
     Column, BigInteger, Integer, String, Text, Numeric, DateTime,
     ForeignKey, CheckConstraint, Index
@@ -6,10 +7,15 @@ from sqlalchemy.orm import relationship
 from .base import Base, utc_now
 
 
+def generate_random_id() -> int:
+    """Generate random numeric ID (8 digits, strictly numbers)."""
+    return secrets.randbelow(89999999) + 10000000
+
+
 class Event(Base):
     __tablename__ = "events"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True, index=True)
+    id = Column(BigInteger, primary_key=True, default=generate_random_id, index=True)
     title = Column(String(255), nullable=False)
     slug = Column(String(255), unique=True, index=True, nullable=False)
     description = Column(Text, nullable=False)
@@ -19,7 +25,7 @@ class Event(Base):
     start_at = Column(DateTime, nullable=False)
     end_at = Column(DateTime, nullable=False)
     price = Column(Numeric(precision=10, scale=2), nullable=False, default=0.00)
-    currency = Column(String(3), nullable=False, default="USD")
+    currency = Column(String(3), nullable=False, default="INR")
     total_capacity = Column(Integer, nullable=False)
     available_capacity = Column(Integer, nullable=False)
     status = Column(String(20), nullable=False, default="DRAFT", index=True)  # 'DRAFT', 'PUBLISHED', 'CANCELLED'

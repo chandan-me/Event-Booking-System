@@ -17,6 +17,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import BookmarksIcon from '@mui/icons-material/Bookmarks';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -40,15 +41,16 @@ export const Navbar = () => {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: 'rgba(11, 15, 25, 0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: 'none',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid #e2e8f0',
+        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.03)',
+        color: '#0f172a',
       }}
     >
       <Container maxWidth="lg">
-        <Toolbar disableGutters sx={{ height: 72, justifyContent: 'space-between' }}>
-          {/* Brand Logo */}
+        <Toolbar disableGutters sx={{ height: 74, justifyContent: 'space-between' }}>
+          {/* Luxury Brand Logo */}
           <Box
             onClick={() => navigate('/')}
             sx={{
@@ -56,44 +58,74 @@ export const Navbar = () => {
               alignItems: 'center',
               gap: 1.5,
               cursor: 'pointer',
+              userSelect: 'none',
             }}
           >
             <Box
               sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                width: 42,
+                height: 42,
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.18)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
               }}
             >
-              <ConfirmationNumberIcon sx={{ color: '#fff', fontSize: 24 }} />
+              <ConfirmationNumberIcon sx={{ color: '#f8fafc', fontSize: 22 }} />
             </Box>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 800,
-                letterSpacing: '-0.02em',
-                background: 'linear-gradient(90deg, #ffffff 0%, #cbd5e1 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              EventPass
-            </Typography>
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: '1.25rem',
+                    letterSpacing: '-0.03em',
+                    color: '#0f172a',
+                    lineHeight: 1,
+                  }}
+                >
+                  EventPass
+                </Typography>
+                <Chip
+                  icon={<CurrencyRupeeIcon sx={{ fontSize: '11px !important', color: '#0f172a !important' }} />}
+                  label="INR"
+                  size="small"
+                  sx={{
+                    height: 18,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    backgroundColor: '#f1f5f9',
+                    color: '#0f172a',
+                    border: '1px solid #e2e8f0',
+                    '& .MuiChip-label': { px: 0.75 },
+                  }}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: 11, fontWeight: 500 }}>
+                Tickets & Live Experiences
+              </Typography>
+            </Box>
           </Box>
 
           {/* Navigation Links */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Button
-              color="inherit"
               onClick={() => navigate('/')}
               sx={{
-                color: location.pathname === '/' ? '#6366f1' : 'text.secondary',
+                color: location.pathname === '/' ? '#0f172a' : '#64748b',
                 fontWeight: location.pathname === '/' ? 700 : 500,
+                backgroundColor: location.pathname === '/' ? '#f8fafc' : 'transparent',
+                border: location.pathname === '/' ? '1px solid #e2e8f0' : '1px solid transparent',
+                borderRadius: 2.5,
+                px: 2,
+                '&:hover': {
+                  backgroundColor: '#f1f5f9',
+                  color: '#0f172a',
+                },
               }}
             >
               Explore Events
@@ -101,12 +133,19 @@ export const Navbar = () => {
 
             {isAuthenticated && (
               <Button
-                color="inherit"
                 onClick={() => navigate('/my-bookings')}
-                startIcon={<BookmarksIcon fontSize="small" />}
+                startIcon={<BookmarksIcon fontSize="small" sx={{ color: '#64748b' }} />}
                 sx={{
-                  color: location.pathname === '/my-bookings' ? '#6366f1' : 'text.secondary',
+                  color: location.pathname === '/my-bookings' ? '#0f172a' : '#64748b',
                   fontWeight: location.pathname === '/my-bookings' ? 700 : 500,
+                  backgroundColor: location.pathname === '/my-bookings' ? '#f8fafc' : 'transparent',
+                  border: location.pathname === '/my-bookings' ? '1px solid #e2e8f0' : '1px solid transparent',
+                  borderRadius: 2.5,
+                  px: 2,
+                  '&:hover': {
+                    backgroundColor: '#f1f5f9',
+                    color: '#0f172a',
+                  },
                 }}
               >
                 My Bookings
@@ -115,18 +154,19 @@ export const Navbar = () => {
 
             {isAdmin && (
               <Button
-                color="secondary"
                 variant="outlined"
                 onClick={() => navigate('/admin')}
-                startIcon={<AdminPanelSettingsIcon />}
+                startIcon={<AdminPanelSettingsIcon sx={{ fontSize: 18 }} />}
                 size="small"
                 sx={{
-                  borderRadius: 2,
-                  borderColor: 'rgba(245, 158, 11, 0.4)',
-                  color: '#fbbf24',
+                  borderRadius: 2.5,
+                  borderColor: '#cbd5e1',
+                  color: '#0f172a',
+                  backgroundColor: '#ffffff',
+                  fontWeight: 600,
                   '&:hover': {
-                    borderColor: '#f59e0b',
-                    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+                    borderColor: '#0f172a',
+                    backgroundColor: '#f8fafc',
                   },
                 }}
               >
@@ -136,15 +176,18 @@ export const Navbar = () => {
 
             {/* User Profile or Sign In */}
             {isAuthenticated ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', ml: 0.5 }}>
                 <IconButton onClick={handleOpenMenu} sx={{ p: 0.5 }}>
                   <Avatar
                     sx={{
-                      width: 38,
-                      height: 38,
-                      bgcolor: '#4f46e5',
+                      width: 40,
+                      height: 40,
+                      bgcolor: '#0f172a',
+                      color: '#ffffff',
                       fontWeight: 700,
                       fontSize: 15,
+                      border: '2px solid #e2e8f0',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                     }}
                   >
                     {user?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
@@ -154,53 +197,67 @@ export const Navbar = () => {
                   anchorEl={anchorEl}
                   open={Boolean(anchorEl)}
                   onClose={handleCloseMenu}
-                  PaperProps={{
-                    sx: {
-                      mt: 1.5,
-                      minWidth: 220,
-                      backgroundColor: '#111827',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: 3,
+                  slotProps={{
+                    paper: {
+                      sx: {
+                        mt: 1.5,
+                        minWidth: 230,
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 3,
+                        boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.1)',
+                        p: 0.5,
+                      },
                     },
                   }}
                 >
-                  <Box sx={{ px: 2, py: 1.5 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid #f1f5f9', mb: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0f172a' }}>
                       {user?.full_name || 'Event Attendee'}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
                       {user?.email}
                     </Typography>
                     <Chip
                       label={user?.role}
                       size="small"
-                      color={isAdmin ? 'secondary' : 'primary'}
-                      sx={{ mt: 1, height: 20, fontSize: 11 }}
+                      sx={{
+                        mt: 1,
+                        height: 20,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        bgcolor: user?.role === 'ADMIN' ? '#fef3c7' : '#f1f5f9',
+                        color: user?.role === 'ADMIN' ? '#92400e' : '#334155',
+                        border: '1px solid #e2e8f0',
+                      }}
                     />
                   </Box>
-                  <MenuItem onClick={() => { handleCloseMenu(); navigate('/my-bookings'); }}>
-                    <BookmarksIcon fontSize="small" sx={{ mr: 1.5, color: '#818cf8' }} />
+                  <MenuItem onClick={() => { handleCloseMenu(); navigate('/my-bookings'); }} sx={{ borderRadius: 2 }}>
+                    <BookmarksIcon fontSize="small" sx={{ mr: 1.5, color: '#64748b' }} />
                     My Bookings
                   </MenuItem>
                   {isAdmin && (
-                    <MenuItem onClick={() => { handleCloseMenu(); navigate('/admin'); }}>
-                      <DashboardIcon fontSize="small" sx={{ mr: 1.5, color: '#fbbf24' }} />
+                    <MenuItem onClick={() => { handleCloseMenu(); navigate('/admin'); }} sx={{ borderRadius: 2 }}>
+                      <DashboardIcon fontSize="small" sx={{ mr: 1.5, color: '#0f172a' }} />
                       Admin Dashboard
                     </MenuItem>
                   )}
-                  <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+                  <MenuItem onClick={handleLogout} sx={{ color: '#dc2626', borderRadius: 2, mt: 0.5 }}>
                     <LogoutIcon fontSize="small" sx={{ mr: 1.5 }} />
                     Sign Out
                   </MenuItem>
                 </Menu>
               </Box>
             ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1 }}>
                 <Button
-                  variant="text"
-                  color="inherit"
                   onClick={() => navigate('/login')}
-                  sx={{ color: 'text.primary' }}
+                  sx={{
+                    color: '#0f172a',
+                    fontWeight: 600,
+                    px: 2,
+                    '&:hover': { backgroundColor: '#f1f5f9' },
+                  }}
                 >
                   Sign In
                 </Button>
@@ -208,6 +265,18 @@ export const Navbar = () => {
                   variant="contained"
                   color="primary"
                   onClick={() => navigate('/register')}
+                  sx={{
+                    backgroundColor: '#f5f5f5',
+                    color: '#0f172a',
+                    border: '1px solid #e2e8f0',
+                    fontWeight: 700,
+                    px: 2.5,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                    '&:hover': {
+                      backgroundColor: '#e5e5e5',
+                      borderColor: '#cbd5e1',
+                    },
+                  }}
                 >
                   Get Started
                 </Button>

@@ -51,7 +51,7 @@ class BookingService:
             )
 
         unit_price = Decimal(str(event.get("price", "0.00")))
-        currency = event.get("currency", "USD")
+        currency = event.get("currency", "INR")
         total_amount = unit_price * req.quantity
         booking_ref = generate_booking_reference()
 

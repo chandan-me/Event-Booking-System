@@ -37,7 +37,7 @@ def render_booking_confirmation_template(
     event_title: str,
     quantity: int,
     total_amount: str,
-    currency: str = "USD",
+    currency: str = "INR",
     venue_name: str = "Main Stage",
     start_at: str = "TBD"
 ) -> str:

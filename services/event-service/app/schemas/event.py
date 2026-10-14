@@ -46,7 +46,7 @@ class EventCreate(BaseModel):
     start_at: datetime
     end_at: datetime
     price: Decimal = Field(default=Decimal("0.00"), ge=Decimal("0.00"), max_digits=10, decimal_places=2)
-    currency: str = Field(default="USD", min_length=3, max_length=3)
+    currency: str = Field(default="INR", min_length=3, max_length=3)
     total_capacity: int = Field(..., gt=0, description="Total tickets available for this event")
     status: str = Field(default="DRAFT", pattern="^(DRAFT|PUBLISHED|CANCELLED|COMPLETED)$")
 

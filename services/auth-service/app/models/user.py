@@ -1,12 +1,18 @@
+import secrets
 from sqlalchemy import Column, BigInteger, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from .base import Base, utc_now
 
 
+def generate_random_id() -> int:
+    """Generate random numeric ID (8 digits, strictly numbers)."""
+    return secrets.randbelow(89999999) + 10000000
+
+
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True, index=True)
+    id = Column(BigInteger, primary_key=True, default=generate_random_id, index=True)
     full_name = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)

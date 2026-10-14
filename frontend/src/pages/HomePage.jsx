@@ -1,84 +1,94 @@
 import React, { useState, useEffect } from 'react';
 import {
   Container,
-  Box,
   Typography,
-  Grid,
+  Box,
   TextField,
   InputAdornment,
+  Grid,
   Chip,
-  Pagination,
-  CircularProgress,
   Button,
+  CircularProgress,
+  Pagination,
   Stack,
   Alert,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { useNavigate } from 'react-router-dom';
-import { eventsApi } from '../api/eventsApi';
+import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
+import { useSearchParams } from 'react-router-dom';
+import { getEvents, getCategories } from '../api/eventsApi';
 import { EventCard } from '../components/EventCard';
 import { BookingModal } from '../components/BookingModal';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export const HomePage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
-  // Booking modal state
+  // Filters & Pagination
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [page, setPage] = useState(parseInt(searchParams.get('page') || '1', 10));
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Booking Modal State
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
 
-  const fetchCategories = async () => {
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    fetchEvents();
+    // Update URL queries
+    const params = {};
+    if (searchTerm) params.search = searchTerm;
+    if (selectedCategory) params.category = selectedCategory;
+    if (page > 1) params.page = page.toString();
+    setSearchParams(params);
+  }, [selectedCategory, page]);
+
+  const loadCategories = async () => {
     try {
-      const res = await eventsApi.getCategories();
-      if (res.success && res.data) {
-        setCategories(res.data);
-      }
+      const res = await getCategories();
+      setCategories(res.data || []);
     } catch (err) {
-      console.error('Failed to fetch categories:', err);
+      console.error('Failed to load categories', err);
     }
   };
 
   const fetchEvents = async () => {
     setLoading(true);
-    setError('');
+    setError(null);
     try {
       const params = {
         page,
         limit: 9,
-        search: searchTerm || undefined,
-        category_id: selectedCategory || undefined,
       };
-      const res = await eventsApi.getEvents(params);
-      if (res.success && res.data) {
-        setEvents(res.data.events || []);
-        setTotalPages(res.data.pagination?.total_pages || 1);
-      }
+      if (searchTerm) params.search = searchTerm;
+      if (selectedCategory) params.category = selectedCategory;
+
+      const res = await getEvents(params);
+      const items = res.data?.items || [];
+      const total = res.data?.total || 0;
+      setEvents(items);
+      setTotalPages(Math.ceil(total / 9) || 1);
     } catch (err) {
-      setError('Unable to load live events. Verify that the API Gateway is online.');
+      setError(err.response?.data?.detail || 'Failed to retrieve events. Ensure services are running.');
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    fetchEvents();
-  }, [page, selectedCategory]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -96,52 +106,51 @@ export const HomePage = () => {
   };
 
   const handleBookingSuccess = () => {
-    // Refresh events to reflect decremented capacity
-    fetchEvents();
+    fetchEvents(); // Refresh capacity
   };
 
   return (
-    <Box sx={{ pb: 10 }}>
-      {/* Hero Section */}
+    <Box sx={{ pb: 10, bgcolor: '#ffffff', minHeight: '100vh' }}>
+      {/* Hero Banner Section */}
       <Box
         sx={{
-          pt: { xs: 8, md: 12 },
-          pb: { xs: 6, md: 9 },
-          background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.25), transparent)',
+          pt: { xs: 8, md: 10 },
+          pb: { xs: 7, md: 9 },
+          background: 'radial-gradient(ellipse 90% 60% at 50% -10%, #f8fafc 0%, #ffffff 100%)',
           textAlign: 'center',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          borderBottom: '1px solid #e2e8f0',
         }}
       >
         <Container maxWidth="md">
           <Chip
-            icon={<ConfirmationNumberIcon sx={{ fontSize: 16 }} />}
-            label="Real-Time Microservices Powered Ticketing"
+            icon={<CurrencyRupeeIcon sx={{ fontSize: '13px !important', color: '#0f172a !important' }} />}
+            label="Live Ticketing in INR with Instant Confirmation"
             sx={{
               mb: 3,
-              px: 1,
+              px: 1.5,
               py: 0.5,
-              bgcolor: 'rgba(99, 102, 241, 0.12)',
-              color: '#818cf8',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
-              fontWeight: 600,
+              bgcolor: '#f1f5f9',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
+              fontWeight: 700,
+              fontSize: 12,
             }}
           />
           <Typography
             variant="h2"
             sx={{
               fontWeight: 800,
-              fontSize: { xs: '2.5rem', md: '3.75rem' },
+              fontSize: { xs: '2.5rem', md: '3.5rem' },
               lineHeight: 1.15,
               mb: 2.5,
-              background: 'linear-gradient(135deg, #ffffff 0%, #cbd5e1 60%, #94a3b8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: '#0f172a',
+              letterSpacing: '-0.03em',
             }}
           >
             Discover & Book Unforgettable Live Experiences
           </Typography>
-          <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 400, mb: 4, mx: 'auto', maxWidth: 650 }}>
-            From high-octane stadium concerts and developer summits to boutique film festivals — secure your spot with atomic reservation certainty.
+          <Typography variant="h6" sx={{ color: '#64748b', fontWeight: 400, mb: 4, mx: 'auto', maxWidth: 640, fontSize: '1.1rem' }}>
+            From premier tech summits and esports arena showdowns to acoustic festivals — secure your seats with atomic reservation certainty.
           </Typography>
 
           {/* Search Box */}
@@ -154,16 +163,15 @@ export const HomePage = () => {
               maxWidth: 580,
               mx: 'auto',
               p: 0.75,
-              borderRadius: 3,
-              bgcolor: 'rgba(17, 24, 39, 0.85)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              backdropFilter: 'blur(10px)',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)',
+              borderRadius: 3.5,
+              bgcolor: '#ffffff',
+              border: '1px solid #cbd5e1',
+              boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.08)',
             }}
           >
             <TextField
               fullWidth
-              placeholder="Search by event title, artist, or venue..."
+              placeholder="Search by event title, venue, or keywords..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               variant="standard"
@@ -171,15 +179,26 @@ export const HomePage = () => {
                 input: {
                   disableUnderline: true,
                   startAdornment: (
-                    <InputAdornment position="start" sx={{ pl: 1 }}>
-                      <SearchIcon sx={{ color: 'text.secondary' }} />
+                    <InputAdornment position="start" sx={{ pl: 1.5 }}>
+                      <SearchIcon sx={{ color: '#94a3b8' }} />
                     </InputAdornment>
                   ),
-                  sx: { color: 'text.primary', fontSize: 15 },
+                  sx: { color: '#0f172a', fontSize: 15 },
                 },
               }}
             />
-            <Button type="submit" variant="contained" color="primary" sx={{ px: 3, borderRadius: 2.5 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{
+                px: 3.5,
+                borderRadius: 2.5,
+                bgcolor: '#0f172a',
+                color: '#ffffff',
+                fontWeight: 700,
+                '&:hover': { bgcolor: '#1e293b' },
+              }}
+            >
               Search
             </Button>
           </Box>
@@ -194,34 +213,56 @@ export const HomePage = () => {
             <Chip
               label="All Categories"
               onClick={() => { setSelectedCategory(''); setPage(1); }}
-              variant={selectedCategory === '' ? 'filled' : 'outlined'}
-              color={selectedCategory === '' ? 'primary' : 'default'}
-              sx={{ fontWeight: 600, cursor: 'pointer' }}
+              sx={{
+                fontWeight: 700,
+                cursor: 'pointer',
+                bgcolor: selectedCategory === '' ? '#0f172a' : '#f8fafc',
+                color: selectedCategory === '' ? '#ffffff' : '#475569',
+                border: '1px solid',
+                borderColor: selectedCategory === '' ? '#0f172a' : '#e2e8f0',
+                '&:hover': { bgcolor: selectedCategory === '' ? '#1e293b' : '#f1f5f9' },
+              }}
             />
-            {categories.map((cat) => (
-              <Chip
-                key={cat.id}
-                label={cat.name}
-                onClick={() => { setSelectedCategory(cat.id); setPage(1); }}
-                variant={selectedCategory === cat.id ? 'filled' : 'outlined'}
-                color={selectedCategory === cat.id ? 'primary' : 'default'}
-                sx={{ fontWeight: 600, cursor: 'pointer' }}
-              />
-            ))}
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat.id;
+              return (
+                <Chip
+                  key={cat.id}
+                  label={cat.name}
+                  onClick={() => { setSelectedCategory(cat.id); setPage(1); }}
+                  sx={{
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    bgcolor: isSelected ? '#0f172a' : '#f8fafc',
+                    color: isSelected ? '#ffffff' : '#475569',
+                    border: '1px solid',
+                    borderColor: isSelected ? '#0f172a' : '#e2e8f0',
+                    '&:hover': { bgcolor: isSelected ? '#1e293b' : '#f1f5f9' },
+                  }}
+                />
+              );
+            })}
           </Stack>
 
           <Button
             size="small"
             startIcon={<RefreshIcon />}
             onClick={() => fetchEvents()}
-            sx={{ color: 'text.secondary' }}
+            sx={{
+              color: '#64748b',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: 2,
+              px: 1.5,
+              '&:hover': { color: '#0f172a', bgcolor: '#f1f5f9' },
+            }}
           >
             Refresh Feed
           </Button>
         </Box>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 4, borderRadius: 3 }}>
+          <Alert severity="error" sx={{ mb: 4, borderRadius: 3, border: '1px solid #fecaca' }}>
             {error}
           </Alert>
         )}
@@ -229,7 +270,7 @@ export const HomePage = () => {
         {/* Loading Spinner */}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
-            <CircularProgress color="primary" />
+            <CircularProgress sx={{ color: '#0f172a' }} />
           </Box>
         ) : events.length === 0 ? (
           /* Empty State */
@@ -239,20 +280,21 @@ export const HomePage = () => {
               py: 12,
               px: 3,
               borderRadius: 4,
-              bgcolor: 'rgba(17, 24, 39, 0.4)',
-              border: '1px dashed rgba(255, 255, 255, 0.1)',
+              bgcolor: '#f8fafc',
+              border: '1px dashed #cbd5e1',
             }}
           >
-            <ConfirmationNumberIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+            <ConfirmationNumberIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 2 }} />
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#0f172a' }}>
               No upcoming events found
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
+            <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
               Try adjusting your search query or switching categories.
             </Typography>
             <Button
               variant="outlined"
               onClick={() => { setSearchTerm(''); setSelectedCategory(''); setPage(1); }}
+              sx={{ bgcolor: '#ffffff', borderColor: '#cbd5e1', color: '#0f172a' }}
             >
               Reset Filters
             </Button>
@@ -275,9 +317,19 @@ export const HomePage = () => {
                   count={totalPages}
                   page={page}
                   onChange={(_, val) => setPage(val)}
-                  color="primary"
                   shape="rounded"
                   size="large"
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      color: '#0f172a',
+                      fontWeight: 600,
+                      border: '1px solid #e2e8f0',
+                      '&.Mui-selected': {
+                        bgcolor: '#0f172a',
+                        color: '#ffffff',
+                      },
+                    },
+                  }}
                 />
               </Box>
             )}

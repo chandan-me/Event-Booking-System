@@ -119,7 +119,8 @@ def seed():
             "venue_address": "99 Grove St, San Francisco, CA 94102",
             "start_at": now + timedelta(days=14, hours=9),
             "end_at": now + timedelta(days=16, hours=18),
-            "price": Decimal("149.00"),
+            "price": Decimal("2499.00"),
+            "currency": "INR",
             "total_capacity": 250,
             "available_capacity": 250,
             "status": "PUBLISHED",
@@ -134,7 +135,8 @@ def seed():
             "venue_address": "700 Arena Way, Austin, TX 78701",
             "start_at": now + timedelta(days=21, hours=19, minutes=30),
             "end_at": now + timedelta(days=21, hours=23),
-            "price": Decimal("75.00"),
+            "price": Decimal("1299.00"),
+            "currency": "INR",
             "total_capacity": 500,
             "available_capacity": 500,
             "status": "PUBLISHED",
@@ -149,7 +151,8 @@ def seed():
             "venue_address": "1000 Champions Boulevard, Los Angeles, CA 90015",
             "start_at": now + timedelta(days=30, hours=16),
             "end_at": now + timedelta(days=31, hours=22),
-            "price": Decimal("55.00"),
+            "price": Decimal("899.00"),
+            "currency": "INR",
             "total_capacity": 800,
             "available_capacity": 800,
             "status": "PUBLISHED",
@@ -164,7 +167,8 @@ def seed():
             "venue_address": "450 5th Avenue, New York, NY 10018",
             "start_at": now + timedelta(days=40, hours=10),
             "end_at": now + timedelta(days=41, hours=17),
-            "price": Decimal("99.00"),
+            "price": Decimal("1499.00"),
+            "currency": "INR",
             "total_capacity": 150,
             "available_capacity": 150,
             "status": "PUBLISHED",
@@ -179,7 +183,8 @@ def seed():
             "venue_address": "200 Harbor Drive, San Diego, CA 92101",
             "start_at": now + timedelta(days=7, hours=18),
             "end_at": now + timedelta(days=7, hours=22, minutes=30),
-            "price": Decimal("65.00"),
+            "price": Decimal("1899.00"),
+            "currency": "INR",
             "total_capacity": 100,
             "available_capacity": 100,
             "status": "PUBLISHED",
@@ -194,7 +199,8 @@ def seed():
             "venue_address": "320 S Michigan Ave, Chicago, IL 60604",
             "start_at": now + timedelta(days=12, hours=11),
             "end_at": now + timedelta(days=18, hours=20),
-            "price": Decimal("35.00"),
+            "price": Decimal("499.00"),
+            "currency": "INR",
             "total_capacity": 300,
             "available_capacity": 300,
             "status": "PUBLISHED",
@@ -209,9 +215,13 @@ def seed():
             cat_db.add(evt)
             cat_db.commit()
             cat_db.refresh(evt)
-            print(f"  + Seeded Event: {evt.title} (Cap: {evt.available_capacity}/{evt.total_capacity}, Price: ${evt.price})")
+            print(f"  + Seeded Event: {evt.title} (Cap: {evt.available_capacity}/{evt.total_capacity}, Price: INR {evt.price} {evt.currency})")
         else:
-            print(f"  = Event exists: {evt.title}")
+            evt.price = item["price"]
+            evt.currency = "INR"
+            evt.available_capacity = item["available_capacity"]
+            cat_db.commit()
+            print(f"  * Updated Event to INR: {evt.title} (Price: INR {evt.price})")
 
     cat_db.close()
     print("\nSeeding complete! Demo data is ready in MySQL.")

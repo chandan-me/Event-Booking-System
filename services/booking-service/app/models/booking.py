@@ -1,19 +1,25 @@
+import secrets
 from sqlalchemy import Column, BigInteger, Integer, String, Numeric, DateTime, Index
 from sqlalchemy.orm import relationship
 from .base import Base, utc_now
 
 
+def generate_random_id() -> int:
+    """Generate random numeric ID (8 digits, strictly numbers)."""
+    return secrets.randbelow(89999999) + 10000000
+
+
 class Booking(Base):
     __tablename__ = "bookings"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True, index=True)
+    id = Column(BigInteger, primary_key=True, default=generate_random_id, index=True)
     booking_reference = Column(String(32), unique=True, nullable=False, index=True)
     customer_id = Column(BigInteger, nullable=False, index=True)  # Logical reference to Auth Service user
     event_id = Column(BigInteger, nullable=False, index=True)     # Logical reference to Event Service event
     quantity = Column(Integer, nullable=False)
     unit_price_snapshot = Column(Numeric(precision=10, scale=2), nullable=False)
     total_amount_snapshot = Column(Numeric(precision=10, scale=2), nullable=False)
-    currency = Column(String(3), nullable=False, default="USD")
+    currency = Column(String(3), nullable=False, default="INR")
     status = Column(String(20), nullable=False, default="CONFIRMED", index=True)  # 'PENDING', 'CONFIRMED', 'CANCELLED', 'FAILED'
     idempotency_key = Column(String(64), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, nullable=False, default=utc_now)

@@ -227,15 +227,15 @@ export const AdminDashboardPage = () => {
             </Box>
           </Box>
 
-          <TableContainer component={Paper} sx={{ bgcolor: 'rgba(17, 24, 39, 0.85)', borderRadius: 3, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <TableContainer component={Paper} sx={{ bgcolor: '#ffffff', borderRadius: 3, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ bgcolor: 'rgba(255, 255, 255, 0.02)' }}>
+                <TableRow sx={{ bgcolor: '#f8fafc' }}>
                   <TableCell sx={{ fontWeight: 700 }}>Event Title</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Category</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Venue</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Capacity</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Price</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Price (INR)</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                   <TableCell sx={{ fontWeight: 700 }} align="right">Actions</TableCell>
                 </TableRow>
@@ -244,28 +244,28 @@ export const AdminDashboardPage = () => {
                 {loadingEvents ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                      <CircularProgress size={32} />
+                      <CircularProgress size={32} sx={{ color: '#0f172a' }} />
                     </TableCell>
                   </TableRow>
                 ) : events.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 6, color: 'text.secondary' }}>
+                    <TableCell colSpan={7} align="center" sx={{ py: 6, color: '#64748b' }}>
                       No events in system. Click "Create New Event" to initialize catalog.
                     </TableCell>
                   </TableRow>
                 ) : (
                   events.map((evt) => (
                     <TableRow key={evt.id} hover>
-                      <TableCell sx={{ fontWeight: 600 }}>{evt.title}</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: '#0f172a' }}>{evt.title}</TableCell>
                       <TableCell>
-                        <Chip label={evt.category?.name || 'General'} size="small" sx={{ fontSize: 11 }} />
+                        <Chip label={evt.category?.name || 'General'} size="small" sx={{ fontSize: 11, bgcolor: '#f1f5f9', color: '#334155' }} />
                       </TableCell>
-                      <TableCell>{evt.venue}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ color: '#64748b' }}>{evt.venue}</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: '#0f172a' }}>
                         {evt.available_capacity} / {evt.total_capacity}
                       </TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: '#fbbf24' }}>
-                        ${parseFloat(evt.ticket_price || 0).toFixed(2)}
+                      <TableCell sx={{ fontWeight: 700, color: '#0f172a' }}>
+                        ₹{parseFloat(evt.ticket_price || 0).toLocaleString('en-IN')}
                       </TableCell>
                       <TableCell>
                         <Chip
@@ -301,15 +301,15 @@ export const AdminDashboardPage = () => {
             </Button>
           </Box>
 
-          <TableContainer component={Paper} sx={{ bgcolor: 'rgba(17, 24, 39, 0.85)', borderRadius: 3, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <TableContainer component={Paper} sx={{ bgcolor: '#ffffff', borderRadius: 3, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ bgcolor: 'rgba(255, 255, 255, 0.02)' }}>
+                <TableRow sx={{ bgcolor: '#f8fafc' }}>
                   <TableCell sx={{ fontWeight: 700 }}>Booking Ref</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Customer ID</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Event ID</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Qty</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>Total ($)</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Total (INR)</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Created At</TableCell>
                 </TableRow>
@@ -318,24 +318,24 @@ export const AdminDashboardPage = () => {
                 {loadingBookings ? (
                   <TableRow>
                     <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                      <CircularProgress size={32} />
+                      <CircularProgress size={32} sx={{ color: '#0f172a' }} />
                     </TableCell>
                   </TableRow>
                 ) : allBookings.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 6, color: 'text.secondary' }}>
+                    <TableCell colSpan={7} align="center" sx={{ py: 6, color: '#64748b' }}>
                       No bookings recorded yet.
                     </TableCell>
                   </TableRow>
                 ) : (
                   allBookings.map((b) => (
                     <TableRow key={b.id} hover>
-                      <TableCell sx={{ fontWeight: 700, color: '#818cf8' }}>{b.booking_reference}</TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{b.user_id?.substring(0, 12)}...</TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{b.event_id?.substring(0, 12)}...</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>{b.quantity}</TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: '#fbbf24' }}>
-                        ${parseFloat(b.total_price || 0).toFixed(2)}
+                      <TableCell sx={{ fontWeight: 700, color: '#0f172a' }}>{b.booking_reference}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, color: '#64748b' }}>{String(b.user_id || '').substring(0, 12)}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, color: '#64748b' }}>{String(b.event_id || '').substring(0, 12)}</TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: '#0f172a' }}>{b.quantity}</TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: '#059669' }}>
+                        ₹{parseFloat(b.total_price || 0).toLocaleString('en-IN')}
                       </TableCell>
                       <TableCell>
                         <Chip
@@ -379,10 +379,10 @@ export const AdminDashboardPage = () => {
                 const isOnline = status === 'ONLINE' || status === 'UP';
                 return (
                   <Grid item xs={12} sm={6} md={3} key={service}>
-                    <Card sx={{ bgcolor: 'rgba(17, 24, 39, 0.85)', p: 2 }}>
+                    <Card sx={{ bgcolor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', p: 2 }}>
                       <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                          <CloudQueueIcon sx={{ color: isOnline ? '#34d399' : '#ef4444' }} />
+                          <CloudQueueIcon sx={{ color: isOnline ? '#059669' : '#dc2626' }} />
                           <Chip
                             icon={isOnline ? <CheckCircleIcon sx={{ fontSize: 14 }} /> : <ErrorIcon sx={{ fontSize: 14 }} />}
                             label={status}
@@ -391,10 +391,10 @@ export const AdminDashboardPage = () => {
                             sx={{ fontWeight: 700 }}
                           />
                         </Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 800, textTransform: 'capitalize' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 800, textTransform: 'capitalize', color: '#0f172a' }}>
                           {service} Service
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        <Typography variant="caption" sx={{ color: '#64748b' }}>
                           Protocol: HTTP REST / SAGA
                         </Typography>
                       </CardContent>
@@ -417,9 +417,9 @@ export const AdminDashboardPage = () => {
         onClose={() => setEventModalOpen(false)}
         maxWidth="md"
         fullWidth
-        PaperProps={{ sx: { bgcolor: '#111827', borderRadius: 3 } }}
+        slotProps={{ paper: { sx: { bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 25px 50px -12px rgba(15,23,42,0.15)' } } }}
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>Create New Live Event</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, color: '#0f172a' }}>Create New Live Event</DialogTitle>
         <Box component="form" onSubmit={handleCreateEvent}>
           <DialogContent>
             <Grid container spacing={2}>
@@ -492,7 +492,7 @@ export const AdminDashboardPage = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Ticket Price ($ USD)"
+                  label="Ticket Price (₹ INR)"
                   type="number"
                   step="0.01"
                   required
@@ -527,9 +527,9 @@ export const AdminDashboardPage = () => {
         onClose={() => setCatModalOpen(false)}
         maxWidth="xs"
         fullWidth
-        PaperProps={{ sx: { bgcolor: '#111827', borderRadius: 3 } }}
+        slotProps={{ paper: { sx: { bgcolor: '#ffffff', borderRadius: 4, border: '1px solid #e2e8f0', boxShadow: '0 25px 50px -12px rgba(15,23,42,0.15)' } } }}
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>Add Event Category</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, color: '#0f172a' }}>Add Event Category</DialogTitle>
         <Box component="form" onSubmit={handleCreateCategory}>
           <DialogContent>
             <TextField

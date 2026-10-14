@@ -36,3 +36,11 @@ export const eventsApi = {
     return res.data;
   },
 };
+
+export const getEvents = eventsApi.getEvents;
+export const getEventById = eventsApi.getEventById;
+export const getCategories = eventsApi.getCategories;
+export const createCategory = eventsApi.createCategory;
+export const createEvent = eventsApi.createEvent;
+export const updateEvent = eventsApi.updateEvent;
+export const deleteEvent = eventsApi.deleteEvent;

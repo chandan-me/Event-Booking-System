@@ -1,6 +1,8 @@
 import React from 'react';
 import { Box, Container, Typography, Chip, Stack } from '@mui/material';
 import CloudDoneIcon from '@mui/icons-material/CloudDone';
+import SecurityIcon from '@mui/icons-material/Security';
+import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 
 export const Footer = () => {
   return (
@@ -9,8 +11,8 @@ export const Footer = () => {
       sx={{
         py: 6,
         mt: 'auto',
-        backgroundColor: '#070a12',
-        borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+        backgroundColor: '#ffffff',
+        borderTop: '1px solid #e2e8f0',
       }}
     >
       <Container maxWidth="lg">
@@ -24,38 +26,70 @@ export const Footer = () => {
           }}
         >
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#f3f4f6' }}>
-              EventPass Microservices Platform
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              Powered by Python 3.12, FastAPI, MySQL 8.0, RabbitMQ, and React Vite.
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                EventPass Platform
+              </Typography>
+              <Chip
+                icon={<CurrencyRupeeIcon sx={{ fontSize: '12px !important', color: '#059669 !important' }} />}
+                label="INR Enabled"
+                size="small"
+                sx={{
+                  bgcolor: '#ecfdf5',
+                  color: '#059669',
+                  border: '1px solid #a7f3d0',
+                  fontWeight: 700,
+                  height: 20,
+                  fontSize: 10,
+                }}
+              />
+            </Box>
+            <Typography variant="body2" sx={{ color: '#64748b', maxWidth: 480 }}>
+              Enterprise distributed ticketing system with atomic inventory locks, SAGA compensation, and instant OTP verification.
             </Typography>
           </Box>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ alignItems: 'center' }}>
             <Chip
-              icon={<CloudDoneIcon sx={{ fontSize: 16 }} />}
+              icon={<CloudDoneIcon sx={{ fontSize: 15, color: '#2563eb' }} />}
               label="API Gateway :8000"
               size="small"
-              sx={{ bgcolor: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', fontWeight: 600 }}
+              sx={{ bgcolor: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', fontWeight: 600 }}
             />
             <Chip
-              label="RabbitMQ SAGA Queue"
+              label="RabbitMQ SAGA"
               size="small"
-              sx={{ bgcolor: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', fontWeight: 600 }}
+              sx={{ bgcolor: '#fffbeb', color: '#b45309', border: '1px solid #fde68a', fontWeight: 600 }}
             />
             <Chip
-              label="MySQL 4 Logical DBs"
+              label="MySQL 8.0 Multi-DB"
               size="small"
-              sx={{ bgcolor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', fontWeight: 600 }}
+              sx={{ bgcolor: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', fontWeight: 600 }}
+            />
+            <Chip
+              icon={<SecurityIcon sx={{ fontSize: 14, color: '#475569' }} />}
+              label="Argon2id Secure"
+              size="small"
+              sx={{ bgcolor: '#f8fafc', color: '#334155', border: '1px solid #e2e8f0', fontWeight: 600 }}
             />
           </Stack>
         </Box>
 
-        <Box sx={{ mt: 4, pt: 3, borderTop: '1px solid rgba(255, 255, 255, 0.04)', textAlign: 'center' }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            © {new Date().getFullYear()} EventPass Inc. All rights reserved. Built with professional microservices architecture.
+        <Box sx={{ mt: 5, pt: 3, borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+            © {new Date().getFullYear()} EventPass Technologies. Built with Python 3.12, FastAPI, React 19 & MySQL.
           </Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Typography variant="caption" sx={{ color: '#64748b', cursor: 'pointer', '&:hover': { color: '#0f172a' } }}>
+              API Documentation
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#64748b', cursor: 'pointer', '&:hover': { color: '#0f172a' } }}>
+              Architecture Guide
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#64748b', cursor: 'pointer', '&:hover': { color: '#0f172a' } }}>
+              System Health
+            </Typography>
+          </Box>
         </Box>
       </Container>
     </Box>
