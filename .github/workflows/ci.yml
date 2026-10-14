@@ -1,0 +1,96 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  backend-tests:
+    name: Backend Microservices Regression
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword_dev_only
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h localhost -uroot -prootpassword_dev_only" --health-interval 5s --health-timeout 5s --health-retries 10
+
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
+        options: --health-cmd="rabbitmq-diagnostics -q ping" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Initialize MySQL Schemas
+        run: |
+          mysql -h 127.0.0.1 -u root -prootpassword_dev_only < infra/mysql/init.sql
+
+      - name: Seed Demo Data
+        env:
+          AUTH_DATABASE_URL: mysql+pymysql://app_user:app_password_dev_only@127.0.0.1:3306/event_auth_db
+          EVENT_DATABASE_URL: mysql+pymysql://app_user:app_password_dev_only@127.0.0.1:3306/event_catalog_db
+        run: |
+          python scripts/seed_demo_data.py
+
+      - name: Run All Isolated Microservice Tests
+        run: |
+          python run_tests.py
+
+  frontend-build:
+    name: Frontend Lint & Production Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Run Linter
+        run: npm run lint
+
+      - name: Build Production Assets
+        run: npm run build
+
+  docker-validate:
+    name: Docker Compose Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose Configuration
+        run: docker compose config
