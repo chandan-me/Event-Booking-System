@@ -77,11 +77,15 @@ export const AdminDashboardPage = () => {
     setLoadingEvents(true);
     try {
       const [eventsRes, catsRes] = await Promise.all([
-        eventsApi.getEvents({ limit: 50 }),
+        eventsApi.getEvents({ limit: 100 }),
         eventsApi.getCategories(),
       ]);
-      if (eventsRes.success) setEvents(eventsRes.data.events || []);
-      if (catsRes.success) setCategories(catsRes.data || []);
+      if (eventsRes.success && eventsRes.data) {
+        setEvents(eventsRes.data.items || eventsRes.data.events || []);
+      }
+      if (catsRes.success && catsRes.data) {
+        setCategories(catsRes.data.items || catsRes.data || []);
+      }
     } catch (err) {
       enqueueSnackbar('Failed to load events data', { variant: 'error' });
     } finally {
@@ -92,9 +96,9 @@ export const AdminDashboardPage = () => {
   const fetchBookings = async () => {
     setLoadingBookings(true);
     try {
-      const res = await bookingsApi.getAllBookingsAdmin({ limit: 50 });
+      const res = await bookingsApi.getAllBookingsAdmin({ limit: 100 });
       if (res.success && res.data) {
-        setAllBookings(res.data.bookings || []);
+        setAllBookings(res.data.items || res.data.bookings || []);
       }
     } catch (err) {
       enqueueSnackbar('Failed to fetch system bookings', { variant: 'error' });
@@ -127,22 +131,43 @@ export const AdminDashboardPage = () => {
     e.preventDefault();
     setSubmittingEvent(true);
     try {
+      const desc =
+        eventForm.description && eventForm.description.trim().length >= 10
+          ? eventForm.description.trim()
+          : `${eventForm.title} live experience at ${eventForm.venue}. Book your premium tickets now!`;
+
       const payload = {
-        ...eventForm,
-        start_time: new Date(eventForm.start_time).toISOString(),
-        end_time: new Date(eventForm.end_time).toISOString(),
+        title: eventForm.title,
+        description: desc,
+        category_id: parseInt(eventForm.category_id, 10),
+        venue_name: eventForm.venue,
+        venue_address: `${eventForm.venue}, India`,
+        start_at: new Date(eventForm.start_time).toISOString(),
+        end_at: new Date(eventForm.end_time).toISOString(),
         total_capacity: parseInt(eventForm.total_capacity, 10),
-        ticket_price: parseFloat(eventForm.ticket_price),
+        price: parseFloat(eventForm.ticket_price),
+        currency: 'INR',
+        status: 'PUBLISHED',
       };
       const res = await eventsApi.createEvent(payload);
       if (res.success) {
         enqueueSnackbar('Event successfully created and published!', { variant: 'success' });
         setEventModalOpen(false);
+        setEventForm({
+          title: '',
+          description: '',
+          category_id: '',
+          venue: '',
+          start_time: '',
+          end_time: '',
+          total_capacity: 100,
+          ticket_price: 999,
+        });
         fetchEventsAndCategories();
       }
     } catch (err) {
-      const msg = err.response?.data?.error?.message || err.message || 'Creation failed';
-      enqueueSnackbar(msg, { variant: 'error' });
+      const msg = err.response?.data?.error?.message || err.response?.data?.detail || err.message || 'Creation failed';
+      enqueueSnackbar(typeof msg === 'string' ? msg : JSON.stringify(msg), { variant: 'error' });
     } finally {
       setSubmittingEvent(false);
     }
@@ -258,14 +283,18 @@ export const AdminDashboardPage = () => {
                     <TableRow key={evt.id} hover>
                       <TableCell sx={{ fontWeight: 600, color: '#0f172a' }}>{evt.title}</TableCell>
                       <TableCell>
-                        <Chip label={evt.category?.name || 'General'} size="small" sx={{ fontSize: 11, bgcolor: '#f1f5f9', color: '#334155' }} />
+                        <Chip
+                          label={evt.category_name || evt.category?.name || 'General'}
+                          size="small"
+                          sx={{ fontSize: 11, bgcolor: '#f1f5f9', color: '#334155', fontWeight: 600 }}
+                        />
                       </TableCell>
-                      <TableCell sx={{ color: '#64748b' }}>{evt.venue}</TableCell>
+                      <TableCell sx={{ color: '#64748b' }}>{evt.venue_name || evt.venue || 'Venue TBA'}</TableCell>
                       <TableCell sx={{ fontWeight: 600, color: '#0f172a' }}>
-                        {evt.available_capacity} / {evt.total_capacity}
+                        {evt.available_capacity ?? evt.total_capacity} / {evt.total_capacity}
                       </TableCell>
                       <TableCell sx={{ fontWeight: 700, color: '#0f172a' }}>
-                        ₹{parseFloat(evt.ticket_price || 0).toLocaleString('en-IN')}
+                        ₹{parseFloat(evt.price ?? evt.ticket_price ?? 0).toLocaleString('en-IN')}
                       </TableCell>
                       <TableCell>
                         <Chip
@@ -331,11 +360,20 @@ export const AdminDashboardPage = () => {
                   allBookings.map((b) => (
                     <TableRow key={b.id} hover>
                       <TableCell sx={{ fontWeight: 700, color: '#0f172a' }}>{b.booking_reference}</TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, color: '#64748b' }}>{String(b.user_id || '').substring(0, 12)}</TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, color: '#64748b' }}>{String(b.event_id || '').substring(0, 12)}</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, color: '#64748b' }}>
+                        {String(b.customer_id || b.user_id || '').substring(0, 12)}
+                      </TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: 12, color: '#64748b' }}>
+                        {String(b.event_id || '').substring(0, 12)}
+                      </TableCell>
                       <TableCell sx={{ fontWeight: 700, color: '#0f172a' }}>{b.quantity}</TableCell>
                       <TableCell sx={{ fontWeight: 700, color: '#059669' }}>
-                        ₹{parseFloat(b.total_price || 0).toLocaleString('en-IN')}
+                        ₹{parseFloat(b.total_amount_snapshot || b.total_price || 0).toLocaleString('en-IN')}
+                        {b.razorpay_payment_id && (
+                          <Box sx={{ fontSize: 10, color: '#6366f1', fontFamily: 'monospace', mt: 0.5 }}>
+                            RPay: {b.razorpay_payment_id}
+                          </Box>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Chip
@@ -346,7 +384,7 @@ export const AdminDashboardPage = () => {
                         />
                       </TableCell>
                       <TableCell sx={{ fontSize: 12, color: 'text.secondary' }}>
-                        {new Date(b.created_at).toLocaleString()}
+                        {b.created_at ? new Date(b.created_at).toLocaleString() : 'N/A'}
                       </TableCell>
                     </TableRow>
                   ))
