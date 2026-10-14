@@ -67,7 +67,7 @@ def test_live_end_to_end_customer_journey():
         assert me_res.json()["data"]["email"] == "alice@example.com"
 
         # 4. Discover Events Catalog
-        events_res = client.get("/api/v1/events?limit=20", headers=auth_headers)
+        events_res = client.get("/api/v1/events?limit=100", headers=auth_headers)
         assert events_res.status_code == 200
         events_data = events_res.json()["data"]
         events = events_data.get("items") or events_data.get("events") or []
@@ -75,6 +75,11 @@ def test_live_end_to_end_customer_journey():
 
         # Pick an event that has available capacity for booking
         target_event = next((e for e in events if e.get("available_capacity", 0) >= 2), None)
+        if not target_event:
+            # Fallback search for seeded conference
+            res_search = client.get("/api/v1/events?search=Global", headers=auth_headers)
+            items = res_search.json().get("data", {}).get("items", [])
+            target_event = next((e for e in items if e.get("available_capacity", 0) >= 2), None)
         assert target_event is not None, "No event with sufficient capacity found"
 
         event_id = target_event["id"]

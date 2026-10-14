@@ -114,21 +114,46 @@ docker compose up --build -d
 
 ---
 
-## Automated Test Suites
+### Option C: Kubernetes Deployment (Kustomize / Minikube / Cloud)
+
+Deploy the entire microservice ecosystem with Ingress and Auto-scaling:
+```bash
+kubectl apply -k infra/k8s
+```
+- Full guide: [Kubernetes Deployment Guide](infra/k8s/README.md)
+- Ingress host: `http://eventpass.local/`
+- Horizontal Pod Autoscalers: `booking-service-hpa`, `event-service-hpa`, `api-gateway-hpa`
+
+---
+
+## Developer Tooling & Operations CLI
+
+```powershell
+# 1. Run Database Diagnostics & Schema Integrity Checks across all 4 DBs
+python scripts/db_ops.py --check
+
+# 2. Export / Update Postman v2.1 API Collection with Pre-configured Environments
+python scripts/export_postman_collection.py
+
+# 3. Re-seed demo database (Admin + Customer + 6 Live Events)
+python scripts/seed_demo_data.py
+```
+
+---
+
+## Automated Test Suites & CI/CD
 
 Run all microservice test suites in isolated subprocesses:
 ```powershell
 python run_tests.py
 ```
 
-Run specific test suites:
-```powershell
-# Run API Gateway tests
-pytest services/api-gateway/tests -v
-
-# Run End-to-End integration test
-pytest tests/integration/test_end_to_end_journey.py -v
-```
+- **GitHub Actions Pipeline**: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) validates:
+  1. MySQL 8.0 schema initialization & migrations
+  2. Database health verification (`scripts/db_ops.py --check`)
+  3. Postman collection export validation
+  4. 37 isolated microservice tests across all 6 suites
+  5. React 19 / Vite production build
 
 ---
 
@@ -144,6 +169,7 @@ pytest tests/integration/test_end_to_end_journey.py -v
 - [x] **Phase 8: React Frontend** (Customer portal, ticket modal, user reservations, admin console, Material UI)
 - [x] **Phase 9: Full Integration** (End-to-end customer journey, demo data seeder, process supervisor, SAGA tests)
 - [x] **Phase 10: Documentation & Deployment** (Dockerfiles, compose.yaml, ADRs, interview prep, master README)
+- [x] **Enterprise CI/CD & Kubernetes** (GitHub Actions, K8s manifests, Kustomize, HPA, Postman Collection)
 
 ---
 
@@ -154,3 +180,6 @@ pytest tests/integration/test_end_to_end_journey.py -v
 - [API Contracts & Standards](docs/api-contracts.md)
 - [Architecture Decision Records (ADRs)](docs/architecture-decision-records.md)
 - [Senior Technical Interview Prep Guide](docs/interview-prep.md)
+- [Kubernetes Deployment Guide](infra/k8s/README.md)
+- [Postman API Collection](docs/eventpass-postman-collection.json)
+

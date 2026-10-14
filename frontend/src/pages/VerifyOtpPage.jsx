@@ -163,8 +163,10 @@ export const VerifyOtpPage = () => {
               margin="normal"
               autoFocus
               required
-              inputProps={{
-                style: { textAlign: 'center', fontSize: 24, letterSpacing: 8, fontWeight: 700 },
+              slotProps={{
+                htmlInput: {
+                  style: { textAlign: 'center', fontSize: 24, letterSpacing: 8, fontWeight: 700 },
+                },
               }}
             />
 

@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: eventpass
+
+resources:
+  - 00-namespace.yaml
+  - 01-configmap.yaml
+  - 02-secrets.yaml
+  - 10-mysql-statefulset.yaml
+  - 11-rabbitmq-deployment.yaml
+  - 20-auth-service.yaml
+  - 21-event-service.yaml
+  - 22-booking-service.yaml
+  - 23-notification-service.yaml
+  - 30-api-gateway.yaml
+  - 31-frontend.yaml
+  - 40-ingress.yaml
+  - 50-hpa.yaml

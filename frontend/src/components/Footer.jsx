@@ -32,7 +32,7 @@ export const Footer = () => {
             </Typography>
           </Box>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="center">
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ alignItems: 'center' }}>
             <Chip
               icon={<CloudDoneIcon sx={{ fontSize: 16 }} />}
               label="API Gateway :8000"

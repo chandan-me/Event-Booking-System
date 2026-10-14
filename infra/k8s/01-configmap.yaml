@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eventpass-config
+  namespace: eventpass
+  labels:
+    app.kubernetes.io/name: eventpass
+data:
+  APP_ENV: "production"
+  LOG_LEVEL: "INFO"
+  
+  # Microservice Hostnames inside K8s cluster
+  AUTH_SERVICE_URL: "http://auth-service.eventpass.svc.cluster.local:8001"
+  EVENT_SERVICE_URL: "http://event-service.eventpass.svc.cluster.local:8002"
+  BOOKING_SERVICE_URL: "http://booking-service.eventpass.svc.cluster.local:8003"
+  NOTIFICATION_SERVICE_URL: "http://notification-service.eventpass.svc.cluster.local:8004"
+  
+  # RabbitMQ Broker Configuration
+  RABBITMQ_HOST: "rabbitmq.eventpass.svc.cluster.local"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_QUEUE: "event_notifications_queue"
+  RABBITMQ_EXCHANGE: "event_booking_events"
+  
+  # MySQL Host Configuration
+  DB_HOST: "mysql.eventpass.svc.cluster.local"
+  DB_PORT: "3306"
+  
+  # Mail configuration
+  SMTP_HOST: "mailpit.eventpass.svc.cluster.local"
+  SMTP_PORT: "1025"

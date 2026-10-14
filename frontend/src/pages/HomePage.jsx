@@ -167,14 +167,16 @@ export const HomePage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               variant="standard"
-              InputProps={{
-                disableUnderline: true,
-                startAdornment: (
-                  <InputAdornment position="start" sx={{ pl: 1 }}>
-                    <SearchIcon sx={{ color: 'text.secondary' }} />
-                  </InputAdornment>
-                ),
-                sx: { color: 'text.primary', fontSize: 15 },
+              slotProps={{
+                input: {
+                  disableUnderline: true,
+                  startAdornment: (
+                    <InputAdornment position="start" sx={{ pl: 1 }}>
+                      <SearchIcon sx={{ color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                  sx: { color: 'text.primary', fontSize: 15 },
+                },
               }}
             />
             <Button type="submit" variant="contained" color="primary" sx={{ px: 3, borderRadius: 2.5 }}>

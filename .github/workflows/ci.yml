@@ -52,6 +52,19 @@ jobs:
         run: |
           python scripts/seed_demo_data.py
 
+      - name: Verify Database Integrity & Health
+        env:
+          AUTH_DATABASE_URL: mysql+pymysql://app_user:app_password_dev_only@127.0.0.1:3306/event_auth_db
+          EVENT_DATABASE_URL: mysql+pymysql://app_user:app_password_dev_only@127.0.0.1:3306/event_catalog_db
+          BOOKING_DATABASE_URL: mysql+pymysql://app_user:app_password_dev_only@127.0.0.1:3306/event_booking_db
+          NOTIFICATION_DATABASE_URL: mysql+pymysql://app_user:app_password_dev_only@127.0.0.1:3306/event_notification_db
+        run: |
+          python scripts/db_ops.py --check
+
+      - name: Validate Postman Collection Generation
+        run: |
+          python scripts/export_postman_collection.py
+
       - name: Run All Isolated Microservice Tests
         run: |
           python run_tests.py
