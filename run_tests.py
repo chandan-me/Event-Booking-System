@@ -8,6 +8,7 @@ SERVICES = [
     ("Booking Service", "services/booking-service/tests"),
     ("Notification Service", "services/notification-service/tests"),
     ("API Gateway", "services/api-gateway/tests"),
+    ("Integration Suite", "tests/integration"),
 ]
 
 def main():

@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, Header
 from sqlalchemy.orm import Session
 
 from app.schemas.booking import (
@@ -24,11 +24,15 @@ router = APIRouter(prefix="/api/v1", tags=["Bookings"])
 )
 def create_booking(
     req: BookingCreateRequest,
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
     db: Session = Depends(get_db),
     event_client: BaseEventClient = Depends(get_event_client),
     booking_service: BookingService = Depends(get_booking_service),
     user_payload: dict = Depends(get_current_user_payload)
 ):
+    if idempotency_key and not req.idempotency_key:
+        req.idempotency_key = idempotency_key
+
     customer_id = int(user_payload.get("sub", 0))
     booking = booking_service.create_booking(
         db=db,
@@ -43,6 +47,11 @@ def create_booking(
     )
 
 
+@router.get(
+    "/bookings",
+    response_model=StandardResponse[PaginatedResponse[BookingResponse]],
+    summary="View customer's own booking history (Customer)"
+)
 @router.get(
     "/bookings/me",
     response_model=StandardResponse[PaginatedResponse[BookingResponse]],
