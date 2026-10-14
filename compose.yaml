@@ -1,6 +1,9 @@
 name: event-booking-system
 
 services:
+  # =========================================================================
+  # INFRASTRUCTURE TIER
+  # =========================================================================
   mysql:
     image: mysql:8.0
     container_name: event-booking-mysql
@@ -29,8 +32,8 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     ports:
-      - "5672:5672"     # AMQP protocol
-      - "15672:15672"   # Management HTTP UI
+      - "5672:5672"     # AMQP messaging
+      - "15672:15672"   # Management Dashboard UI
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -47,8 +50,135 @@ services:
     container_name: event-booking-mailpit
     restart: unless-stopped
     ports:
-      - "1025:1025"     # Local SMTP server
-      - "8025:8025"     # Web UI to preview outgoing emails
+      - "1025:1025"     # SMTP Port
+      - "8025:8025"     # Web Inbox UI
+    networks:
+      - event-net
+
+  # =========================================================================
+  # APPLICATION MICROSERVICES TIER
+  # =========================================================================
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth-service/Dockerfile
+    container_name: event-auth-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql+pymysql://app_user:app_password_dev_only@mysql:3306/event_auth_db
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      AUTH_PORT: 8001
+    ports:
+      - "8001:8001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    networks:
+      - event-net
+
+  event-service:
+    build:
+      context: .
+      dockerfile: services/event-service/Dockerfile
+    container_name: event-catalog-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql+pymysql://app_user:app_password_dev_only@mysql:3306/event_catalog_db
+      EVENT_PORT: 8002
+    ports:
+      - "8002:8002"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - event-net
+
+  booking-service:
+    build:
+      context: .
+      dockerfile: services/booking-service/Dockerfile
+    container_name: event-booking-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql+pymysql://app_user:app_password_dev_only@mysql:3306/event_booking_db
+      EVENT_SERVICE_URL: http://event-service:8002
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      BOOKING_PORT: 8003
+    ports:
+      - "8003:8003"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      event-service:
+        condition: service_started
+    networks:
+      - event-net
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: event-notification-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql+pymysql://app_user:app_password_dev_only@mysql:3306/event_notification_db
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      NOTIFICATION_PORT: 8004
+    ports:
+      - "8004:8004"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    networks:
+      - event-net
+
+  # =========================================================================
+  # EDGE GATEWAY & FRONTEND TIER
+  # =========================================================================
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: event-api-gateway
+    restart: unless-stopped
+    environment:
+      GATEWAY_PORT: 8000
+      AUTH_SERVICE_URL: http://auth-service:8001
+      EVENT_SERVICE_URL: http://event-service:8002
+      BOOKING_SERVICE_URL: http://booking-service:8003
+      NOTIFICATION_SERVICE_URL: http://notification-service:8004
+      GATEWAY_CORS_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - auth-service
+      - event-service
+      - booking-service
+      - notification-service
+    networks:
+      - event-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: event-frontend-spa
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
     networks:
       - event-net
 
