@@ -24,6 +24,31 @@ class BookingCreateRequest(BaseModel):
     event_id: int = Field(..., gt=0, description="Target event ID")
     quantity: int = Field(..., gt=0, le=10, description="Number of tickets to book (1-10)")
     idempotency_key: Optional[str] = Field(None, min_length=16, max_length=64, description="Unique client key preventing duplicate purchases")
+    razorpay_order_id: Optional[str] = Field(None, description="Razorpay Order ID")
+    razorpay_payment_id: Optional[str] = Field(None, description="Razorpay Payment ID")
+    razorpay_signature: Optional[str] = Field(None, description="Razorpay Payment Verification Signature")
+
+
+class RazorpayOrderCreateRequest(BaseModel):
+    event_id: int = Field(..., gt=0, description="Target event ID")
+    quantity: int = Field(..., gt=0, le=10, description="Number of tickets to book")
+
+
+class RazorpayOrderResponse(BaseModel):
+    order_id: str
+    amount: int  # Amount in paise (1 INR = 100 paise)
+    currency: str = "INR"
+    key_id: str
+    event_title: str
+    unit_price: Decimal
+    total_amount: Decimal
+
+
+class RazorpayVerifyRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+    booking_id: Optional[int] = None
 
 
 class BookingCancelRequest(BaseModel):
@@ -50,6 +75,10 @@ class BookingResponse(BaseModel):
     unit_price_snapshot: Decimal
     total_amount_snapshot: Decimal
     currency: str
+    razorpay_order_id: Optional[str] = None
+    razorpay_payment_id: Optional[str] = None
+    razorpay_signature: Optional[str] = None
+    payment_status: Optional[str] = "PAID"
     status: str
     idempotency_key: str
     created_at: datetime

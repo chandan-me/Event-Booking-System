@@ -216,9 +216,17 @@ export const UserDashboardPage = () => {
                               Total Paid:{' '}
                               <CurrencyRupeeIcon sx={{ fontSize: 14, ml: 0.5, color: '#059669' }} />
                               <Typography component="span" sx={{ fontWeight: 800, color: '#059669' }}>
-                                {parseFloat(booking.total_price || 0).toLocaleString('en-IN')}
+                                {parseFloat(booking.total_price || booking.total_amount_snapshot || 0).toLocaleString('en-IN')}
                               </Typography>
                             </Box>
+                            {booking.razorpay_payment_id && (
+                              <Box>
+                                Payment:{' '}
+                                <Typography component="span" sx={{ fontWeight: 600, color: '#0284c7' }}>
+                                  {booking.razorpay_payment_id}
+                                </Typography>
+                              </Box>
+                            )}
                             <Box>
                               Date:{' '}
                               <Typography component="span">

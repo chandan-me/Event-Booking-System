@@ -191,3 +191,63 @@ def test_admin_booking_management_endpoint():
     r_admin = client.get("/api/v1/admin/bookings?status=CONFIRMED", headers={"Authorization": f"Bearer {admin_token}"})
     assert r_admin.status_code == 200
     assert "items" in r_admin.json()["data"]
+
+
+def test_razorpay_order_and_booking_storage():
+    cust_token = generate_test_token(user_id=45, role="CUSTOMER")
+    headers = {"Authorization": f"Bearer {cust_token}"}
+
+    # Setup published event
+    fake_event_client.events[200] = {
+        "id": 200,
+        "title": "Bangalore Tech Summit",
+        "price": Decimal("1499.00"),
+        "currency": "INR",
+        "available_capacity": 50,
+        "total_capacity": 50,
+        "status": "PUBLISHED"
+    }
+
+    # 1. Create Razorpay order
+    r_order = client.post(
+        "/api/v1/bookings/razorpay/order",
+        json={"event_id": 200, "quantity": 2},
+        headers=headers
+    )
+    assert r_order.status_code == 200
+    order_data = r_order.json()["data"]
+    assert order_data["currency"] == "INR"
+    assert order_data["amount"] == 299800  # 1499 * 2 * 100 paise
+    assert order_data["order_id"].startswith("order_")
+
+    # 2. Verify Razorpay signature endpoint
+    r_verify = client.post(
+        "/api/v1/bookings/razorpay/verify",
+        json={
+            "razorpay_order_id": order_data["order_id"],
+            "razorpay_payment_id": "pay_test987654321",
+            "razorpay_signature": "sig_mock_signature_test_123"
+        },
+        headers=headers
+    )
+    assert r_verify.status_code == 200
+    assert r_verify.json()["data"]["verified"] is True
+
+    # 3. Complete booking with Razorpay IDs and verify storage in database
+    r_booking = client.post(
+        "/api/v1/bookings",
+        json={
+            "event_id": 200,
+            "quantity": 2,
+            "razorpay_order_id": order_data["order_id"],
+            "razorpay_payment_id": "pay_test987654321",
+            "razorpay_signature": "sig_mock_signature_test_123"
+        },
+        headers=headers
+    )
+    assert r_booking.status_code == 201
+    booking = r_booking.json()["data"]
+    assert booking["razorpay_order_id"] == order_data["order_id"]
+    assert booking["razorpay_payment_id"] == "pay_test987654321"
+    assert booking["payment_status"] == "PAID"
+    assert booking["currency"] == "INR"

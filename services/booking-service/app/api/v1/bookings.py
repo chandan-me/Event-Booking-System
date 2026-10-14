@@ -1,10 +1,11 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, status, Query, Header
+from fastapi import APIRouter, Depends, status, Query, Header, HTTPException
 from sqlalchemy.orm import Session
 
 from app.schemas.booking import (
     BookingCreateRequest, BookingCancelRequest, BookingResponse,
-    BookingDetailResponse, PaginatedResponse, StandardResponse
+    BookingDetailResponse, PaginatedResponse, StandardResponse,
+    RazorpayOrderCreateRequest, RazorpayOrderResponse, RazorpayVerifyRequest
 )
 from app.api.deps import (
     get_db, get_event_client, get_booking_service,
@@ -14,6 +15,57 @@ from app.services.booking_service import BookingService
 from app.clients.event_client import BaseEventClient
 
 router = APIRouter(prefix="/api/v1", tags=["Bookings"])
+
+
+@router.post(
+    "/bookings/razorpay/order",
+    response_model=StandardResponse[RazorpayOrderResponse],
+    summary="Create a Razorpay payment order for ticket reservation (Customer)"
+)
+def create_razorpay_order(
+    req: RazorpayOrderCreateRequest,
+    event_client: BaseEventClient = Depends(get_event_client),
+    booking_service: BookingService = Depends(get_booking_service),
+    user_payload: dict = Depends(get_current_user_payload)
+):
+    customer_id = int(user_payload.get("sub", 0))
+    order = booking_service.create_razorpay_order(
+        event_client=event_client,
+        customer_id=customer_id,
+        req=req
+    )
+    return StandardResponse(
+        success=True,
+        data=order,
+        message="Razorpay order generated successfully"
+    )
+
+
+@router.post(
+    "/bookings/razorpay/verify",
+    response_model=StandardResponse[dict],
+    summary="Verify Razorpay payment signature (Customer)"
+)
+def verify_razorpay_payment(
+    req: RazorpayVerifyRequest,
+    booking_service: BookingService = Depends(get_booking_service),
+    user_payload: dict = Depends(get_current_user_payload)
+):
+    is_valid = booking_service.verify_razorpay_signature(
+        razorpay_order_id=req.razorpay_order_id,
+        razorpay_payment_id=req.razorpay_payment_id,
+        razorpay_signature=req.razorpay_signature
+    )
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid Razorpay payment signature."
+        )
+    return StandardResponse(
+        success=True,
+        data={"verified": True, "order_id": req.razorpay_order_id, "payment_id": req.razorpay_payment_id},
+        message="Razorpay payment verified successfully"
+    )
 
 
 @router.post(

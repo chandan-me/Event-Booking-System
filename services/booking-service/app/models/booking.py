@@ -20,6 +20,10 @@ class Booking(Base):
     unit_price_snapshot = Column(Numeric(precision=10, scale=2), nullable=False)
     total_amount_snapshot = Column(Numeric(precision=10, scale=2), nullable=False)
     currency = Column(String(3), nullable=False, default="INR")
+    razorpay_order_id = Column(String(100), nullable=True, index=True)
+    razorpay_payment_id = Column(String(100), nullable=True, index=True)
+    razorpay_signature = Column(String(255), nullable=True)
+    payment_status = Column(String(50), nullable=False, default="PAID")
     status = Column(String(20), nullable=False, default="CONFIRMED", index=True)  # 'PENDING', 'CONFIRMED', 'CANCELLED', 'FAILED'
     idempotency_key = Column(String(64), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, nullable=False, default=utc_now)

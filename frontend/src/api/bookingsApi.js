@@ -10,6 +10,16 @@ export const bookingsApi = {
     return res.data;
   },
 
+  createRazorpayOrder: async (payload) => {
+    const res = await apiClient.post('/api/v1/bookings/razorpay/order', payload);
+    return res.data;
+  },
+
+  verifyRazorpayPayment: async (payload) => {
+    const res = await apiClient.post('/api/v1/bookings/razorpay/verify', payload);
+    return res.data;
+  },
+
   getMyBookings: async (params = {}) => {
     const res = await apiClient.get('/api/v1/bookings', { params });
     return res.data;

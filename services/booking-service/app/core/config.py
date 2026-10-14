@@ -37,5 +37,10 @@ class BookingSettings(BaseSettings):
     JWT_ISSUER: str = "event-booking-auth"
     JWT_AUDIENCE: str = "event-booking-services"
 
+    # Razorpay Payment Gateway
+    RAZORPAY_KEY_ID: str = Field(default="rzp_test_EventPass2026")
+    RAZORPAY_KEY_SECRET: str = Field(default="dev_razorpay_secret_key_12345")
+    RAZORPAY_ENABLED: bool = True
+
 
 settings = BookingSettings()
