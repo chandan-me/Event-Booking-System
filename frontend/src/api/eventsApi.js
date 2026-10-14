@@ -2,7 +2,11 @@ import { apiClient } from './client';
 
 export const eventsApi = {
   getEvents: async (params = {}) => {
-    const res = await apiClient.get('/api/v1/events', { params });
+    const queryParams = { ...params };
+    if (queryParams.limit && !queryParams.page_size) {
+      queryParams.page_size = queryParams.limit;
+    }
+    const res = await apiClient.get('/api/v1/events', { params: queryParams });
     return res.data;
   },
 
