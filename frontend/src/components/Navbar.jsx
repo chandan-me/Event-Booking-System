@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -11,6 +11,8 @@ import {
   MenuItem,
   Avatar,
   Chip,
+  InputBase,
+  Collapse,
 } from '@mui/material';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -18,15 +20,24 @@ import BookmarksIcon from '@mui/icons-material/Bookmarks';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
-import { useNavigate, useLocation } from 'react-router-dom';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const Navbar = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const [anchorEl, setAnchorEl] = useState(null);
+  const [navSearch, setNavSearch] = useState(searchParams.get('search') || '');
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+
+  useEffect(() => {
+    setNavSearch(searchParams.get('search') || '');
+  }, [searchParams]);
 
   const handleOpenMenu = (event) => setAnchorEl(event.currentTarget);
   const handleCloseMenu = () => setAnchorEl(null);
@@ -35,6 +46,23 @@ export const Navbar = () => {
     handleCloseMenu();
     logout();
     navigate('/');
+  };
+
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (navSearch.trim()) {
+      navigate(`/?search=${encodeURIComponent(navSearch.trim())}`);
+    } else {
+      navigate('/');
+    }
+    setMobileSearchOpen(false);
+  };
+
+  const handleClearSearch = () => {
+    setNavSearch('');
+    if (searchParams.get('search')) {
+      navigate('/');
+    }
   };
 
   return (
@@ -46,10 +74,11 @@ export const Navbar = () => {
         borderBottom: '1px solid #e2e8f0',
         boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.03)',
         color: '#0f172a',
+        zIndex: 1100,
       }}
     >
       <Container maxWidth="lg">
-        <Toolbar disableGutters sx={{ height: 74, justifyContent: 'space-between' }}>
+        <Toolbar disableGutters sx={{ height: 74, justifyContent: 'space-between', gap: 2 }}>
           {/* Luxury Brand Logo */}
           <Box
             onClick={() => navigate('/')}
@@ -59,6 +88,7 @@ export const Navbar = () => {
               gap: 1.5,
               cursor: 'pointer',
               userSelect: 'none',
+              flexShrink: 0,
             }}
           >
             <Box
@@ -111,8 +141,89 @@ export const Navbar = () => {
             </Box>
           </Box>
 
-          {/* Navigation Links */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          {/* Centered Luxury Search Bar (Desktop / Tablet) */}
+          <Box
+            component="form"
+            onSubmit={handleSearchSubmit}
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              alignItems: 'center',
+              flexGrow: 1,
+              maxWidth: 420,
+              mx: 2,
+              px: 2,
+              py: 0.75,
+              borderRadius: '9999px',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              transition: 'all 0.2s ease-in-out',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
+              '&:hover': {
+                borderColor: '#cbd5e1',
+                backgroundColor: '#ffffff',
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.06)',
+              },
+              '&:focus-within': {
+                borderColor: '#0f172a',
+                backgroundColor: '#ffffff',
+                boxShadow: '0 0 0 3px rgba(15, 23, 42, 0.08)',
+              },
+            }}
+          >
+            <SearchIcon sx={{ color: '#94a3b8', fontSize: 20, mr: 1, flexShrink: 0 }} />
+            <InputBase
+              placeholder="Search concerts, tech, comedy, artists..."
+              value={navSearch}
+              onChange={(e) => setNavSearch(e.target.value)}
+              sx={{
+                fontSize: 13.5,
+                color: '#0f172a',
+                width: '100%',
+                fontWeight: 500,
+                '& input::placeholder': {
+                  color: '#94a3b8',
+                  opacity: 1,
+                },
+              }}
+            />
+            {navSearch ? (
+              <IconButton size="small" onClick={handleClearSearch} sx={{ p: 0.25, color: '#94a3b8' }}>
+                <CloseIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+            ) : (
+              <Chip
+                label="↵"
+                size="small"
+                sx={{
+                  height: 18,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  bgcolor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  color: '#94a3b8',
+                  borderRadius: 1,
+                  px: 0.5,
+                }}
+              />
+            )}
+          </Box>
+
+          {/* Navigation Links & User Menu */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
+            {/* Mobile Search Toggle */}
+            <IconButton
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              sx={{
+                display: { xs: 'flex', md: 'none' },
+                color: '#0f172a',
+                bgcolor: mobileSearchOpen ? '#f1f5f9' : 'transparent',
+                border: '1px solid #e2e8f0',
+                p: 1,
+              }}
+            >
+              {mobileSearchOpen ? <CloseIcon fontSize="small" /> : <SearchIcon fontSize="small" />}
+            </IconButton>
+
             <Button
               onClick={() => navigate('/')}
               sx={{
@@ -122,6 +233,7 @@ export const Navbar = () => {
                 border: location.pathname === '/' ? '1px solid #e2e8f0' : '1px solid transparent',
                 borderRadius: 2.5,
                 px: 2,
+                display: { xs: 'none', sm: 'inline-flex' },
                 '&:hover': {
                   backgroundColor: '#f1f5f9',
                   color: '#0f172a',
@@ -284,6 +396,47 @@ export const Navbar = () => {
             )}
           </Box>
         </Toolbar>
+
+        {/* Collapsible Mobile Search Bar */}
+        <Collapse in={mobileSearchOpen}>
+          <Box
+            component="form"
+            onSubmit={handleSearchSubmit}
+            sx={{
+              display: { xs: 'flex', md: 'none' },
+              alignItems: 'center',
+              pb: 2,
+              pt: 0.5,
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                px: 2,
+                py: 0.75,
+                borderRadius: '9999px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+              }}
+            >
+              <SearchIcon sx={{ color: '#94a3b8', fontSize: 18, mr: 1 }} />
+              <InputBase
+                fullWidth
+                placeholder="Search concerts, tech, comedy..."
+                value={navSearch}
+                onChange={(e) => setNavSearch(e.target.value)}
+                sx={{ fontSize: 13, color: '#0f172a' }}
+              />
+              {navSearch && (
+                <IconButton size="small" onClick={handleClearSearch} sx={{ p: 0.25, color: '#94a3b8' }}>
+                  <CloseIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+              )}
+            </Box>
+          </Box>
+        </Collapse>
       </Container>
     </AppBar>
   );
