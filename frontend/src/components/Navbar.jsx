@@ -29,14 +29,17 @@ export const Navbar = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [navSearch, setNavSearch] = useState(searchParams.get('search') || '');
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   useEffect(() => {
-    setNavSearch(searchParams.get('search') || '');
+    const urlQuery = searchParams.get('search') || '';
+    if (urlQuery !== navSearch) {
+      setNavSearch(urlQuery);
+    }
   }, [searchParams]);
 
   const handleOpenMenu = (event) => setAnchorEl(event.currentTarget);
@@ -48,19 +51,52 @@ export const Navbar = () => {
     navigate('/');
   };
 
+  const handleSearchChange = (value) => {
+    setNavSearch(value);
+    const trimmed = value.trim();
+    if (location.pathname === '/') {
+      const newParams = new URLSearchParams(searchParams);
+      if (trimmed) {
+        newParams.set('search', trimmed);
+      } else {
+        newParams.delete('search');
+      }
+      setSearchParams(newParams, { replace: true });
+    } else {
+      if (trimmed) {
+        navigate(`/?search=${encodeURIComponent(trimmed)}`, { replace: false });
+      }
+    }
+  };
+
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
-    if (navSearch.trim()) {
-      navigate(`/?search=${encodeURIComponent(navSearch.trim())}`);
+    const trimmed = navSearch.trim();
+    if (location.pathname === '/') {
+      const newParams = new URLSearchParams(searchParams);
+      if (trimmed) {
+        newParams.set('search', trimmed);
+      } else {
+        newParams.delete('search');
+      }
+      setSearchParams(newParams);
     } else {
-      navigate('/');
+      if (trimmed) {
+        navigate(`/?search=${encodeURIComponent(trimmed)}`);
+      } else {
+        navigate('/');
+      }
     }
     setMobileSearchOpen(false);
   };
 
   const handleClearSearch = () => {
     setNavSearch('');
-    if (searchParams.get('search')) {
+    if (location.pathname === '/') {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('search');
+      setSearchParams(newParams, { replace: true });
+    } else {
       navigate('/');
     }
   };
@@ -174,7 +210,7 @@ export const Navbar = () => {
             <InputBase
               placeholder="Search concerts, tech, comedy, artists..."
               value={navSearch}
-              onChange={(e) => setNavSearch(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               sx={{
                 fontSize: 13.5,
                 color: '#0f172a',
@@ -426,7 +462,7 @@ export const Navbar = () => {
                 fullWidth
                 placeholder="Search concerts, tech, comedy..."
                 value={navSearch}
-                onChange={(e) => setNavSearch(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 sx={{ fontSize: 13, color: '#0f172a' }}
               />
               {navSearch && (

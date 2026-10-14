@@ -3,8 +3,6 @@ import {
   Container,
   Typography,
   Box,
-  TextField,
-  InputAdornment,
   Grid,
   Chip,
   Button,
@@ -13,7 +11,6 @@ import {
   Alert,
   Divider,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
@@ -47,9 +44,9 @@ export const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filters
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  // Read search & category directly from URL query parameters (single source of truth)
+  const searchTerm = searchParams.get('search') || '';
+  const selectedCategory = searchParams.get('category') || '';
 
   // Booking Modal State
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -59,13 +56,6 @@ export const HomePage = () => {
     loadCategories();
     loadAllEvents();
   }, []);
-
-  useEffect(() => {
-    const params = {};
-    if (searchTerm) params.search = searchTerm;
-    if (selectedCategory) params.category = selectedCategory;
-    setSearchParams(params);
-  }, [selectedCategory]);
 
   const loadCategories = async () => {
     try {
@@ -100,8 +90,18 @@ export const HomePage = () => {
     }
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
+  const handleCategorySelect = (catId) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (catId && String(selectedCategory) !== String(catId)) {
+      newParams.set('category', catId);
+    } else {
+      newParams.delete('category');
+    }
+    setSearchParams(newParams);
+  };
+
+  const handleClearFilters = () => {
+    setSearchParams({});
   };
 
   const handleBookClick = (event) => {
@@ -120,15 +120,19 @@ export const HomePage = () => {
   // Filter events based on active search
   const filteredEvents = useMemo(() => {
     let result = allEvents;
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase();
-      result = result.filter(
-        (e) =>
-          e.title?.toLowerCase().includes(q) ||
-          e.description?.toLowerCase().includes(q) ||
-          e.venue_name?.toLowerCase().includes(q) ||
-          e.category_name?.toLowerCase().includes(q)
-      );
+    const q = searchTerm.trim().toLowerCase();
+    if (q) {
+      const words = q.split(/\s+/).filter(Boolean);
+      result = result.filter((e) => {
+        const title = (e.title || '').toLowerCase();
+        const desc = (e.description || '').toLowerCase();
+        const venue = (e.venue_name || e.venue || '').toLowerCase();
+        const address = (e.venue_address || '').toLowerCase();
+        const category = (e.category_name || e.category?.name || '').toLowerCase();
+        const fullContent = `${title} ${desc} ${venue} ${address} ${category}`;
+
+        return words.every((w) => fullContent.includes(w));
+      });
     }
     if (selectedCategory) {
       result = result.filter((e) => String(e.category_id) === String(selectedCategory));
@@ -214,50 +218,7 @@ export const HomePage = () => {
             Reserve your seats at India's top concerts, tech summits, Broadway theatre, and comedy arenas with guaranteed atomic reservation.
           </Typography>
 
-          {/* Search Box */}
-          <Box
-            component="form"
-            onSubmit={handleSearchSubmit}
-            sx={{
-              display: 'flex',
-              gap: 1.5,
-              maxWidth: 580,
-              mx: 'auto',
-              p: 0.75,
-              borderRadius: 3.5,
-              bgcolor: '#ffffff',
-              border: '1px solid #cbd5e1',
-              boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.08)',
-            }}
-          >
-            <TextField
-              fullWidth
-              placeholder="Search by artist, conference, city, or venue..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              variant="standard"
-              slotProps={{
-                input: {
-                  disableUnderline: true,
-                  startAdornment: (
-                    <InputAdornment position="start" sx={{ pl: 1.5 }}>
-                      <SearchIcon sx={{ color: '#94a3b8' }} />
-                    </InputAdornment>
-                  ),
-                  sx: { color: '#0f172a', fontSize: 15 },
-                },
-              }}
-            />
-            {searchTerm && (
-              <Button
-                size="small"
-                onClick={() => setSearchTerm('')}
-                sx={{ color: '#64748b', minWidth: 'auto', px: 1 }}
-              >
-                Clear
-              </Button>
-            )}
-          </Box>
+
 
           {/* Value Props Row */}
           <Box
@@ -319,7 +280,7 @@ export const HomePage = () => {
           >
             <Chip
               label="✨ All Experiences"
-              onClick={() => setSelectedCategory('')}
+              onClick={() => handleCategorySelect('')}
               sx={{
                 height: 36,
                 px: 1.5,
@@ -346,7 +307,7 @@ export const HomePage = () => {
                 <Chip
                   key={cat.id}
                   label={`${meta.icon} ${cat.name}`}
-                  onClick={() => setSelectedCategory(isSelected ? '' : cat.id)}
+                  onClick={() => handleCategorySelect(isSelected ? '' : cat.id)}
                   sx={{
                     height: 36,
                     px: 1.5,
@@ -425,10 +386,7 @@ export const HomePage = () => {
             </Typography>
             <Button
               variant="contained"
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedCategory('');
-              }}
+              onClick={handleClearFilters}
               sx={{ bgcolor: '#0f172a', color: '#ffffff', '&:hover': { bgcolor: '#1e293b' } }}
             >
               Show All Experiences
@@ -452,10 +410,7 @@ export const HomePage = () => {
               <Button
                 variant="outlined"
                 size="small"
-                onClick={() => {
-                  setSelectedCategory('');
-                  setSearchTerm('');
-                }}
+                onClick={handleClearFilters}
                 sx={{ borderColor: '#cbd5e1', color: '#0f172a', textTransform: 'none' }}
               >
                 Clear Filters
