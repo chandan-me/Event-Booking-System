@@ -47,7 +47,7 @@ A production-grade, distributed Event Booking System built with:
 - [x] **Phase 4: Event Service** (CRUD, categories, filtering, atomic inventory reservation)
 - [x] **Phase 5: Booking Service** (Booking lifecycle, references, compensation, concurrency checks)
 - [x] **Phase 6: Notification Service** (RabbitMQ consumer, templates, retries, dead-letter queue)
-- [ ] **Phase 7: API Gateway** (Reverse proxy routing, CORS, rate limits, centralized logging)
+- [x] **Phase 7: API Gateway** (Reverse proxy routing, CORS, aggregated health checks, X-Request-ID propagation, centralized 502/504 error normalization)
 - [ ] **Phase 8: React Frontend** (Customer portal & Admin dashboard with Material UI)
 - [ ] **Phase 9: Full Integration** (End-to-end workflows, concurrency verification, failure recovery)
 - [ ] **Phase 10: Documentation & Deployment** (Complete setup guides, tests, interview review)
