@@ -26,6 +26,10 @@ jobs:
           - 5672:5672
         options: --health-cmd="rabbitmq-diagnostics -q ping" --health-interval 10s --health-timeout 5s --health-retries 5
 
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -43,7 +47,7 @@ jobs:
 
       - name: Initialize MySQL Schemas
         run: |
-          mysql -h 127.0.0.1 -u root -prootpassword_dev_only < infra/mysql/init.sql
+          mysql -h 127.0.0.1 -u root -prootpassword_dev_only < ../infra/mysql/init.sql
 
       - name: Seed Demo Data
         env:

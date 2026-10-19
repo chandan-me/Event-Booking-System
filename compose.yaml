@@ -60,7 +60,7 @@ services:
   # =========================================================================
   auth-service:
     build:
-      context: .
+      context: ./backend
       dockerfile: services/auth-service/Dockerfile
     container_name: event-auth-service
     restart: unless-stopped
@@ -81,7 +81,7 @@ services:
 
   event-service:
     build:
-      context: .
+      context: ./backend
       dockerfile: services/event-service/Dockerfile
     container_name: event-catalog-service
     restart: unless-stopped
@@ -98,7 +98,7 @@ services:
 
   booking-service:
     build:
-      context: .
+      context: ./backend
       dockerfile: services/booking-service/Dockerfile
     container_name: event-booking-service
     restart: unless-stopped
@@ -121,7 +121,7 @@ services:
 
   notification-service:
     build:
-      context: .
+      context: ./backend
       dockerfile: services/notification-service/Dockerfile
     container_name: event-notification-service
     restart: unless-stopped
@@ -148,7 +148,7 @@ services:
   # =========================================================================
   api-gateway:
     build:
-      context: .
+      context: ./backend
       dockerfile: services/api-gateway/Dockerfile
     container_name: event-api-gateway
     restart: unless-stopped

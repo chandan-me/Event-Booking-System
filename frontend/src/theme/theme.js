@@ -27,32 +27,32 @@ export const theme = createTheme({
     success: {
       main: '#059669',
       light: '#d1fae5',
-      contrastText: '#065f46',
+      contrastText: '#ffffff',
     },
     error: {
       main: '#dc2626',
       light: '#fee2e2',
-      contrastText: '#991b1b',
+      contrastText: '#ffffff',
     },
     warning: {
       main: '#d97706',
       light: '#fef3c7',
-      contrastText: '#92400e',
+      contrastText: '#ffffff',
     },
     info: {
       main: '#2563eb',
       light: '#dbeafe',
-      contrastText: '#1e40af',
+      contrastText: '#ffffff',
     },
   },
   typography: {
     fontFamily: '"Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    h1: { fontWeight: 800, letterSpacing: '-0.03em', color: '#0f172a' },
-    h2: { fontWeight: 700, letterSpacing: '-0.025em', color: '#0f172a' },
-    h3: { fontWeight: 700, letterSpacing: '-0.02em', color: '#0f172a' },
-    h4: { fontWeight: 600, letterSpacing: '-0.015em', color: '#0f172a' },
-    h5: { fontWeight: 600, color: '#0f172a' },
-    h6: { fontWeight: 600, color: '#0f172a' },
+    h1: { fontWeight: 800, letterSpacing: '-0.03em' },
+    h2: { fontWeight: 700, letterSpacing: '-0.025em' },
+    h3: { fontWeight: 700, letterSpacing: '-0.02em' },
+    h4: { fontWeight: 600, letterSpacing: '-0.015em' },
+    h5: { fontWeight: 600 },
+    h6: { fontWeight: 600 },
     button: { textTransform: 'none', fontWeight: 600 },
   },
   shape: {
@@ -94,6 +94,14 @@ export const theme = createTheme({
           color: '#ffffff',
           '&:hover': {
             backgroundColor: '#1e293b',
+          },
+        },
+        containedError: {
+          backgroundColor: '#dc2626',
+          color: '#ffffff',
+          fontWeight: 700,
+          '&:hover': {
+            backgroundColor: '#b91c1c',
           },
         },
         outlined: {

@@ -35,4 +35,33 @@ export const authApi = {
     const res = await apiClient.post('/api/v1/auth/reset-password', payload);
     return res.data;
   },
+
+  logout: async () => {
+    try {
+      const res = await apiClient.post('/api/v1/auth/logout');
+      return res.data;
+    } catch {
+      return { success: true };
+    }
+  },
+
+  refresh: async () => {
+    const res = await apiClient.post('/api/v1/auth/refresh');
+    return res.data;
+  },
+
+  setupMfa: async () => {
+    const res = await apiClient.post('/api/v1/auth/mfa/setup');
+    return res.data;
+  },
+
+  verifyMfa: async (code) => {
+    const res = await apiClient.post('/api/v1/auth/mfa/verify', { code });
+    return res.data;
+  },
+
+  disableMfa: async (code, password) => {
+    const res = await apiClient.post('/api/v1/auth/mfa/disable', { code, password });
+    return res.data;
+  },
 };

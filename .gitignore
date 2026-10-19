@@ -1,7 +1,13 @@
+# =====================================================================
+# EVENT BOOKING SYSTEM - GITIGNORE
+# =====================================================================
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
+*.pyd
 
 # Virtual Environments
 .venv/
@@ -10,13 +16,23 @@ ENV/
 env/
 *.venv/
 
-# Environment Variables & Secrets
+# Environment Variables & Secrets (Prevent any .env from entering repo)
 .env
-.env.local
-.env.*.local
+.env.*
+*.env
+**/.env
+**/.env.*
 *.pem
 *.key
 *.cert
+*.crt
+
+# Documentation & Specifications (Do not add docs to git repo)
+docs/
+*.doc
+*.docx
+*.pdf
+*.postman_collection.json
 
 # Node / Frontend
 node_modules/
@@ -35,14 +51,14 @@ htmlcov/
 coverage/
 *.lcov
 
-# Database & Runtime data
+# Database & Runtime Data
 *.sqlite3
 *.db
 data/
 mysql_data/
 rabbitmq_data/
 
-# IDE & Editor configs
+# IDE & Editor Configs
 .vscode/
 .idea/
 *.swp

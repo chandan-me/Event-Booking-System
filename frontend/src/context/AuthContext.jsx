@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '../api/authApi';
+import { setAccessToken, getAccessToken, clearAuthTokens } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -15,10 +16,24 @@ export const AuthProvider = ({ children }) => {
 
   const [loading, setLoading] = useState(true);
 
-  // Sync profile if token exists on initial app load
+  // Sync profile if token exists or silently refresh via HttpOnly cookie on initial app load
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('access_token');
+      let token = getAccessToken();
+
+      // If no token in memory, attempt silent refresh via HttpOnly session cookie
+      if (!token) {
+        try {
+          const refreshRes = await authApi.refresh();
+          if (refreshRes.success && refreshRes.data?.access_token) {
+            token = refreshRes.data.access_token;
+            setAccessToken(token);
+          }
+        } catch {
+          // No active HttpOnly cookie session
+        }
+      }
+
       if (token) {
         try {
           const res = await authApi.getProfile();
@@ -27,8 +42,13 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('user', JSON.stringify(res.data));
           }
         } catch {
-          // If profile fetch fails, axios interceptor handles refresh or removal
+          clearAuthTokens();
+          localStorage.removeItem('user');
+          setUser(null);
         }
+      } else {
+        localStorage.removeItem('user');
+        setUser(null);
       }
       setLoading(false);
     };
@@ -36,6 +56,8 @@ export const AuthProvider = ({ children }) => {
     initAuth();
 
     const handleForceLogout = () => {
+      clearAuthTokens();
+      localStorage.removeItem('user');
       setUser(null);
     };
 
@@ -43,38 +65,79 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener('auth:logout', handleForceLogout);
   }, []);
 
-  const login = async (email, password) => {
-    const res = await authApi.login({ email, password });
+  const login = async (email, password, totpCode) => {
+    const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : email;
+    const res = await authApi.login({ email: cleanEmail, password, totp_code: totpCode });
     if (res.success && res.data) {
-      const { user: userData, access_token, refresh_token } = res.data;
-      localStorage.setItem('access_token', access_token);
-      localStorage.setItem('refresh_token', refresh_token);
+      const { access_token } = res.data;
+      const userData = res.data.user || {
+        id: res.data.user_id || res.data.id,
+        email: res.data.email,
+        role: res.data.role,
+        full_name: res.data.full_name,
+        organization_name: res.data.organization_name,
+      };
+
+      // Store access token in-memory only (never exposed in persistent localStorage)
+      if (access_token) {
+        setAccessToken(access_token);
+      }
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
-      return userData;
+      return { success: true, user: userData, ...res.data };
     }
     throw new Error(res.message || 'Login failed');
   };
 
-  const register = async (payload) => {
+  const register = async (emailOrPayload, password, fullName, role, organizationName) => {
+    let payload;
+    if (typeof emailOrPayload === 'object') {
+      payload = emailOrPayload;
+    } else {
+      payload = {
+        email: emailOrPayload,
+        password,
+        full_name: fullName,
+        role: role || 'CUSTOMER',
+        organization_name: organizationName || undefined,
+      };
+    }
     const res = await authApi.register(payload);
     return res;
   };
 
-  const verifyOtp = async (payload) => {
+  const verifyOtp = async (emailOrPayload, otp) => {
+    const payload =
+      typeof emailOrPayload === 'object'
+        ? emailOrPayload
+        : { email: emailOrPayload, otp };
     const res = await authApi.verifyOtp(payload);
     return res;
   };
 
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+  const resendOtp = async (emailOrPayload) => {
+    const payload =
+      typeof emailOrPayload === 'object'
+        ? emailOrPayload
+        : { email: emailOrPayload };
+    const res = await authApi.resendOtp(payload);
+    return res;
+  };
+
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignore network errors on logout
+    }
+    clearAuthTokens();
     localStorage.removeItem('user');
     setUser(null);
   };
 
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const isOrganizer = user?.role === 'ORGANIZER' || user?.role === 'ORGANISER' || user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
   return (
     <AuthContext.Provider
@@ -83,9 +146,11 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated,
         isAdmin,
+        isOrganizer,
         login,
         register,
         verifyOtp,
+        resendOtp,
         logout,
         setUser,
       }}

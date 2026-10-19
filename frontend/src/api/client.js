@@ -2,18 +2,43 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// In-memory token storage to avoid token exposure in localStorage (XSS prevention)
+let inMemoryAccessToken = sessionStorage.getItem('eventpass_access_token') || null;
+
+export const setAccessToken = (token) => {
+  inMemoryAccessToken = token;
+  if (token) {
+    sessionStorage.setItem('eventpass_access_token', token);
+    apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+  } else {
+    sessionStorage.removeItem('eventpass_access_token');
+    delete apiClient.defaults.headers.common.Authorization;
+  }
+};
+
+export const getAccessToken = () => inMemoryAccessToken;
+
+export const clearAuthTokens = () => {
+  inMemoryAccessToken = null;
+  sessionStorage.removeItem('eventpass_access_token');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  delete apiClient.defaults.headers.common.Authorization;
+};
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 30000, // 30 seconds to support payment gateway checkout & ticket generation
+  withCredentials: true, // Send and receive HttpOnly cookies for secure session management
 });
 
 // Request Interceptor: Injects Bearer token and unique X-Request-ID
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -24,7 +49,7 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Handles 401 Token Expiration with Automatic Refresh Rotation
+// Response Interceptor: Handles 401 Token Expiration with Automatic Refresh Rotation via HttpOnly Cookie
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -48,8 +73,8 @@ apiClient.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url.includes('/api/v1/auth/login') &&
-      !originalRequest.url.includes('/api/v1/auth/refresh')
+      !originalRequest.url?.includes('/api/v1/auth/login') &&
+      !originalRequest.url?.includes('/api/v1/auth/refresh')
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -65,36 +90,26 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (!refreshToken) {
-        isRefreshing = false;
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
-        window.dispatchEvent(new Event('auth:logout'));
-        return Promise.reject(error);
-      }
-
       try {
-        const refreshResponse = await axios.post(`${API_BASE_URL}/api/v1/auth/refresh`, {
-          refresh_token: refreshToken,
-        });
+        // Attempt silent session refresh via HttpOnly refresh cookie
+        const refreshResponse = await axios.post(
+          `${API_BASE_URL}/api/v1/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
 
-        const { access_token, refresh_token: newRefreshToken } = refreshResponse.data.data;
-        localStorage.setItem('access_token', access_token);
-        if (newRefreshToken) {
-          localStorage.setItem('refresh_token', newRefreshToken);
+        const newToken = refreshResponse.data?.data?.access_token;
+        if (newToken) {
+          setAccessToken(newToken);
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          processQueue(null, newToken);
+          return apiClient(originalRequest);
+        } else {
+          throw new Error('Refresh response missing access token');
         }
-
-        apiClient.defaults.headers.common.Authorization = `Bearer ${access_token}`;
-        originalRequest.headers.Authorization = `Bearer ${access_token}`;
-
-        processQueue(null, access_token);
-        return apiClient(originalRequest);
       } catch (refreshErr) {
         processQueue(refreshErr, null);
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
+        clearAuthTokens();
         window.dispatchEvent(new Event('auth:logout'));
         return Promise.reject(refreshErr);
       } finally {
