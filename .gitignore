@@ -8,6 +8,11 @@ __pycache__/
 *$py.class
 *.pyo
 *.pyd
+scratch/
+*.tmp
+*.bak
+*.exe
+infra/mailpit/
 
 # Virtual Environments
 .venv/
