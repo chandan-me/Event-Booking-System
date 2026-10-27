@@ -20,8 +20,9 @@ backend/
 │   ├── dev.py                 # Multi-service development process supervisor
 │   ├── start-all.ps1          # Windows PowerShell launcher for all services
 │   ├── stop-all.ps1           # Stops processes running on microservice ports
+│   ├── seed_database.py       # Master database seeder & SQL dump exporter
+│   ├── restore_seeded_db.py   # Restores database from infra/mysql/seeded_db.sql
 │   ├── seed_demo_data.py      # Seeds demo users and events
-│   ├── clean_and_seed_catalog.py # Resets & populates catalog
 │   └── db_ops.py              # Database diagnostics and checks
 ├── tests/
 │   └── integration/           # End-to-end integration test suite
